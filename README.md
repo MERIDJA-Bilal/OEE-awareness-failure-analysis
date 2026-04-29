@@ -1,6 +1,7 @@
 # OEE awareness & failure analysis
 
 Module de formation TRS – Sensibilisation et classification des pannes
+
 Ce projet consiste en le développement d’un module de formation destiné aux opérateurs et aux contremaîtres afin de les sensibiliser aux enjeux du TRS (Taux de Rendement Synthétique) et d’améliorer leur compréhension de la classification des pannes.
 
 Le module permet de :
