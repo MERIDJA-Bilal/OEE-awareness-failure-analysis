@@ -20,10 +20,10 @@ L’objectif principal est de développer une compréhension commune du TRS et d
 OEE Training Module – Awareness & Failure Classification
 
 This project consists of the development of a training module designed for operators and supervisors to raise awareness of OEE (Overall Equipment Effectiveness) and improve understanding of equipment failure classification.
+
 The module enables:
 
 Presenting key OEE concepts and performance drivers
-
 Explaining different types of equipment failures
 Structuring a clear approach to downtime classification
 Integrating interactive quizzes to validate knowledge
