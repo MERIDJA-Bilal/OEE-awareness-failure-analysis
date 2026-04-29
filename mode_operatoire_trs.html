@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mode Opératoire — Familles de Pertes TRS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f6f8;--bg2:#ffffff;--bg3:#f0f1f4;--border:#e2e4e9;--border2:#eaecf0;
+  --text:#111827;--text2:#4b5563;--text3:#9ca3af;
+  --c1:#ea6c00;--c2:#7c3aed;--c3:#dc2626;--c4:#b45309;
+  --c5:#16a34a;--c6:#0d9488;--c7:#1d4ed8;--c8:#6d28d9;
+  --c9:#e11d48;--c10:#d97706;--gold:#d97706;--radius:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:400;line-height:1.6;min-height:100vh;overflow-x:hidden}
+header{background:#fff;border-bottom:1px solid var(--border);padding:0 48px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.logo{display:flex;align-items:center;gap:14px}
+.logo-icon{width:34px;height:34px;background:var(--gold);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;color:#fff;font-family:'Syne',sans-serif;flex-shrink:0}
+.logo h1{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--text);letter-spacing:.01em}
+.logo h1 span{color:var(--gold)}
+.header-right{display:flex;align-items:center;gap:10px}
+.chip{background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-family:'DM Mono',monospace;font-size:.72rem;font-weight:500;padding:4px 10px;border-radius:4px;letter-spacing:.06em}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:.8rem;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.btn-ghost:hover{border-color:var(--text3);color:var(--text);background:var(--bg3)}
+nav{background:#fff;border-bottom:1px solid var(--border);padding:0 48px;display:flex;gap:0;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{background:none;border:none;border-bottom:2px solid transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:500;padding:14px 20px;cursor:pointer;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:8px}
+nav button:hover{color:var(--text2)}
+nav button.active{color:var(--text);border-bottom-color:var(--gold)}
+.nav-num{background:var(--bg3);color:var(--text3);width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:.7rem;font-weight:500;transition:all .2s}
+nav button.active .nav-num{background:var(--gold);color:#fff}
+main{max-width:1280px;margin:0 auto;padding:40px 48px 80px}
+.tab{display:none}.tab.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.section-header{margin-bottom:32px}
+.section-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;color:var(--text);margin-bottom:6px;letter-spacing:-.01em}
+.section-sub{color:var(--text2);font-size:.9rem;max-width:640px}
+.panel{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:28px 32px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.panel-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:24px;display:flex;align-items:center;gap:8px}
+.panel-title::before{content:'';display:inline-block;width:3px;height:14px;background:var(--gold);border-radius:2px}
+
+/* ── DÉCOMPOSITION ── */
+.decomp-wrap{display:grid;grid-template-columns:175px 1fr;gap:0;align-items:stretch}
+.decomp-labels{display:flex;flex-direction:column;gap:10px;padding-right:20px}
+.decomp-label{height:90px;display:flex;align-items:center;justify-content:flex-end;text-align:right}
+.decomp-label-text{font-family:'DM Mono',monospace;font-size:.7rem;font-weight:500;color:var(--text3);line-height:1.55;text-transform:uppercase;letter-spacing:.04em}
+.decomp-label-text.hi{color:var(--gold);font-weight:700;font-size:.74rem}
+.decomp-step{font-family:'DM Mono',monospace;font-size:.62rem;color:#d1d5db;display:block;margin-bottom:3px}
+.decomp-bars{display:flex;flex-direction:column;gap:10px}
+
+.dbar{height:90px;border-radius:10px;overflow:visible;display:flex;border:1px solid rgba(0,0,0,.08);position:relative}
+.dbar>.dseg{border-radius:0}
+.dbar>.dseg:first-child{border-radius:9px 0 0 9px}
+.dbar>.dseg:last-child{border-radius:0 9px 9px 0}
+.dseg{display:flex;flex-direction:column;align-items:center;justify-content:center;transition:filter .2s;cursor:default;position:relative;overflow:visible}
+.dseg:hover{filter:brightness(.92);z-index:10}
+
+.dlabel{display:flex;align-items:center;padding-left:20px;gap:10px;width:100%;white-space:nowrap}
+.dlabel-pct{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;letter-spacing:-.02em;line-height:1}
+.dlabel-name{font-family:'DM Sans',sans-serif;font-size:.73rem;font-weight:500;opacity:.72;letter-spacing:.02em;display:block;margin-top:3px}
+
+.dinn{font-size:.63rem;text-align:center;line-height:1.3;padding:4px 3px;font-weight:700}
+.dinn-icon{font-size:1rem;display:block;margin-bottom:2px}
+.dinn-pct{font-size:.7rem;font-weight:800;display:block;margin-top:2px}
+
+.dseg[data-tip]:hover::after{
+  content:attr(data-tip);white-space:pre-line;
+  position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%);
+  background:#1f2937;color:#f9fafb;font-size:.76rem;padding:12px 16px;border-radius:9px;
+  max-width:310px;text-align:left;z-index:500;line-height:1.65;
+  font-family:'DM Sans',sans-serif;pointer-events:none;
+  box-shadow:0 8px 28px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1)
+}
+.dseg[data-tip]:hover::before{
+  content:'';position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  border:6px solid transparent;border-top-color:#1f2937;z-index:501
+}
+
+/* ── FORMULE ── */
+.formula{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;padding:20px 0 16px}
+.fblock{border-radius:8px;padding:14px 22px;text-align:center;min-width:110px}
+.fblock .flbl{font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.fblock .fval{font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:500}
+.fop{color:var(--text3);font-family:'DM Mono',monospace;font-size:1.5rem}
+.fhint{background:var(--bg3);border-radius:7px;padding:12px 18px;font-size:.84rem;color:var(--text2);line-height:1.6;text-align:center;margin-top:4px;border:1px solid var(--border2)}
+.fhint strong{color:var(--text)}
+
+/* ── LÉGENDE ── */
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:7px;margin-top:24px;padding-top:24px;border-top:1px solid var(--border2)}
+.litem{display:flex;align-items:center;gap:9px;font-size:.8rem;color:var(--text2)}
+.ldot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+
+/* ── FAMILY CARDS ── */
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.fc{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.fc:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.fctop{padding:18px 20px 0;display:flex;align-items:flex-start;gap:12px}
+.fcnum{font-family:'DM Mono',monospace;font-size:.64rem;font-weight:500;color:var(--text3);background:var(--bg3);padding:3px 7px;border-radius:4px;margin-top:2px;flex-shrink:0;border:1px solid var(--border2)}
+.fcbody{padding:12px 20px 18px;flex:1;display:flex;flex-direction:column;gap:12px}
+.fcdiv{height:1px;background:var(--border2)}
+.fcdesc{font-size:.84rem;color:var(--text2);line-height:1.65}
+.fcdesc strong{color:var(--text);font-weight:600}
+.fcdesc em{font-style:normal;font-weight:500;color:var(--text)}
+.tw{display:flex;flex-wrap:wrap;gap:5px}
+.ft{font-size:.71rem;padding:3px 8px;border-radius:4px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);line-height:1.4}
+.fref{border-radius:7px;padding:10px 14px;font-size:.8rem;line-height:1.6;color:var(--text2);border-left:3px solid}
+.fref .rlbl{font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;font-family:'Syne',sans-serif}
+.fbar{height:3px}
+
+/* ── TABLE ── */
+.twrap{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;overflow-x:auto;margin-bottom:24px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+table{width:100%;border-collapse:collapse;font-size:.83rem;min-width:780px}
+thead th{background:var(--bg3);font-family:'Syne',sans-serif;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);padding:12px 16px;text-align:left;border-bottom:1px solid var(--border)}
+tbody td{padding:12px 16px;border-bottom:1px solid var(--border2);vertical-align:top;line-height:1.55;color:var(--text2)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--bg3)}
+.tnum{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--text3);width:36px}
+.tname{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--text);font-size:.84rem}
+.tdot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.tkpi{font-family:'DM Mono',monospace;font-size:.74rem;font-weight:600;white-space:nowrap}
+
+/* ── RULES ── */
+.rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:20px}
+.rc{background:#fff;border-radius:8px;padding:16px 18px;border:1px solid var(--border2)}
+.rnum{font-family:'DM Mono',monospace;font-size:.64rem;color:var(--text3);margin-bottom:7px}
+.rtitle{font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;margin-bottom:5px}
+.rdesc{font-size:.8rem;color:var(--text2);line-height:1.55}
+
+/* ── QUIZ ── */
+.qwrap{max-width:640px;margin:0 auto}
+.qpbar{height:4px;background:var(--border);border-radius:2px;margin-bottom:28px;overflow:hidden}
+.qpfill{height:100%;background:var(--gold);border-radius:2px;transition:width .4s ease}
+.qcard{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:32px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.qmeta{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.qctr{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--text3);letter-spacing:.05em}
+.qslive{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--gold);font-weight:600}
+.qq{font-family:'Syne',sans-serif;font-weight:700;font-size:1.15rem;line-height:1.35;color:var(--text);margin-bottom:14px}
+.qsc{background:#fffbeb;border:1px solid #fde68a;border-left:3px solid var(--gold);border-radius:0 6px 6px 0;padding:12px 16px;font-size:.83rem;color:#78350f;line-height:1.6;margin-bottom:22px;font-style:italic}
+.qopts{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.qopt{background:#fff;border:1px solid var(--border);border-radius:7px;padding:12px 16px;cursor:pointer;font-size:.87rem;color:var(--text2);transition:all .15s;text-align:left;font-family:'DM Sans',sans-serif;line-height:1.4}
+.qopt:hover:not(:disabled){border-color:var(--text3);color:var(--text);background:var(--bg3)}
+.qopt.ok{border-color:#059669;background:#f0fdf4;color:#065f46;font-weight:500}
+.qopt.ko{border-color:#dc2626;background:#fff1f2;color:#991b1b}
+.qfb{border-radius:7px;padding:12px 16px;font-size:.83rem;line-height:1.6;display:none;margin-bottom:14px}
+.qfb.show{display:block}.qfb.fok{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+.qfb.fko{background:#fff1f2;border:1px solid #fecdd3;color:#991b1b}
+.btnp{background:var(--gold);color:#fff;border:none;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;padding:10px 24px;border-radius:6px;cursor:pointer;transition:opacity .2s;display:inline-flex;align-items:center;gap:8px}
+.btnp:hover{opacity:.88}
+.qres{text-align:center;padding:16px 0}
+.rscore{font-family:'Syne',sans-serif;font-weight:800;font-size:3.5rem;margin:10px 0;line-height:1}
+.rlbl{font-family:'DM Mono',monospace;font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:6px}
+.rmsg{font-size:.88rem;color:var(--text2);margin-bottom:24px;line-height:1.5}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+@media print{body{background:#fff}nav,.btn-ghost{display:none}.tab{display:block!important;animation:none!important;margin-bottom:40px}.fc{break-inside:avoid}header{position:relative;box-shadow:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">TRS</div>
+    <h1>Mode Opératoire — <span>Familles de Pertes</span></h1>
+  </div>
+  <div class="header-right">
+    <button class="btn-ghost" onclick="window.print()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Imprimer
+    </button>
+    <div class="chip">OEE / TRS</div>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('schema',this)"><span class="nav-num">1</span> Schéma TRS</button>
+  <button onclick="showTab('familles',this)"><span class="nav-num">2</span> 10 Familles</button>
+  <button onclick="showTab('recap',this)"><span class="nav-num">3</span> Tableau récap</button>
+  <button onclick="showTab('quiz',this)"><span class="nav-num">4</span> Quiz</button>
+</nav>
+
+<main>
+
+<!-- ── TAB 1 SCHÉMA ── -->
+<div id="tschema" class="tab active">
+  <div class="section-header">
+    <div class="section-title">Comprendre le TRS</div>
+    <div class="section-sub">Chaque niveau montre comment le temps total se réduit. Les 10 familles de pertes "grignotent" le temps productif à chaque étape. <strong>Survolez les segments colorés</strong> pour voir les causes.</div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Décomposition des temps de production</div>
+    <div class="decomp-wrap">
+      <div class="decomp-labels">
+        <div class="decomp-label"><div class="decomp-label-text"><span class="decomp-step">①</span>Temps<br>d'ouverture</div></div>
+        <div class="decomp-label"><div class="decomp-label-text"><span class="decomp-step">②</span>Temps<br>requis</div></div>
+        <div class="decomp-label"><div class="decomp-label-text"><span class="decomp-step">③</span>Disponibilité<br>(Tps Marche)</div></div>
+        <div class="decomp-label"><div class="decomp-label-text"><span class="decomp-step">④</span>Performance<br>(Tps Utile)</div></div>
+        <div class="decomp-label"><div class="decomp-label-text hi"><span class="decomp-step" style="color:var(--gold)">⑤</span>TRS<br>(Qualité OK)</div></div>
+      </div>
+      <div class="decomp-bars">
+
+        <!-- Barre 1 — Temps d'ouverture 100% -->
+        <div class="dbar" style="box-shadow:0 2px 8px rgba(21,128,61,.15)">
+          <div class="dseg" style="flex:100;background:linear-gradient(135deg,#bbf7d0,#dcfce7)">
+            <div class="dlabel" style="color:#14532d">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>
+                <span class="dlabel-pct">100 %</span>
+                <span class="dlabel-name">Temps d'ouverture</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barre 2 — Temps requis 84% + Volontaires 16% -->
+        <div class="dbar" style="box-shadow:0 2px 8px rgba(21,128,61,.12)">
+          <div class="dseg" style="flex:84;background:linear-gradient(135deg,#86efac,#bbf7d0)">
+            <div class="dlabel" style="color:#14532d">
+              <span>
+                <span class="dlabel-pct">84 %</span>
+                <span class="dlabel-name">Temps requis</span>
+              </span>
+            </div>
+          </div>
+          <div class="dseg" style="flex:16;background:#d1fae5;border-left:2px dashed #6ee7b7;cursor:help"
+            data-tip="📋 ARRÊTS VOLONTAIRES (−16 %)
+Casse-croûte
+¼ Heure QEHS
+Réunion
+Semaine EHS
+5S
+
+⚠ Déclarer AVANT l'arrêt
+→ exclus du Temps Requis">
+            <div class="dinn" style="color:#065f46">
+              <span class="dinn-icon">📋</span>
+              Volontaires
+              <span class="dinn-pct">−16 %</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barre 3 — Disponibilité 55% + 8 segments de pertes -->
+        <div class="dbar" style="box-shadow:0 2px 8px rgba(29,78,216,.12)">
+          <div class="dseg" style="flex:55;background:linear-gradient(135deg,#93c5fd,#bfdbfe)">
+            <div class="dlabel" style="color:#1e3a8a">
+              <span>
+                <span class="dlabel-pct">55 %</span>
+                <span class="dlabel-name">Disponibilité</span>
+              </span>
+            </div>
+          </div>
+          <div class="dseg" style="flex:9;background:#fecaca;border-left:2px solid #f87171;cursor:help"
+            data-tip="⚠ PANNES (−9 %)
+Panne torche
+Panne générateur
+Défaut variateur
+Problème alimentation fil (bourrage, blocage)
+Panne meule préparation surface
+Défaut capteur / codeur
+Problème gaz (vide / fuite)
+Défaut communication machine
+Panne chaîne (entrée/sortie)
+Panne manutention
+Panne chariot évacuation
+Défaut chaîne d'entrée
+Défaut cellule / DP">
+            <div class="dinn" style="color:#7f1d1d">
+              <span class="dinn-icon">⚠️</span>
+              Pannes
+              <span class="dinn-pct">−9 %</span>
+            </div>
+          </div>
+          <div class="dseg" style="flex:5;background:#fed7aa;border-left:2px solid #fb923c;cursor:help"
+            data-tip="🛑 ARRÊTS FABRICATION (−5 %)
+Essais
+Formations
+Manque effectif">
+            <div class="dinn" style="color:#7c2d12">
+              <span class="dinn-icon">🛑</span>
+              Fabr.
+              <span class="dinn-pct">−5 %</span>
+            </div>
+          </div>
+          <div class="dseg" style="flex:4;background:#fef08a;border-left:2px solid #facc15;cursor:help"
+            data-tip="🔧 ARRÊTS PROCESS (−4 %)
+Réglage torche
+Réglage générateur
+Réglage paramètres soudage
+Réglage capteurs / cellules">
+            <div class="dinn" style="color:#713f12">
+              <span class="dinn-icon">🔧</span>
+              Process
+              <span class="dinn-pct">−4 %</span>
+            </div>
+          </div>
+          <div class="dseg" style="flex:4;background:#99f6e4;border-left:2px solid #2dd4bf;cursor:help"
+            data-tip="⬇ DISPO AVAL (−4 %)
+Attente cariste
+Défaut alignement
+Saturation encours / manque place
+Défaut DP sortie
+Sortie manuelle DN 1000">
+            <div class="dinn" style="color:#0f4c40">
+              <span class="dinn-icon">⬇️</span>
+              Aval
+              <span class="dinn-pct">−4 %</span>
+            </div>
+          </div>
+          <div class="dseg" style="flex:4;background:#bfdbfe;border-left:2px solid #60a5fa;cursor:help"
+            data-tip="🔃 CHANGEMENT DE SÉRIE (−4 %)
+Changement diamètre (DN)
+Réglage machine après changement
+Vidange machine">
+            <div class="dinn" style="color:#1e3a8a">
+              <span class="dinn-icon">🔃</span>
+              Série
+              <span class="dinn-pct">−4 %</span>
+            </div>
+          </div>
+          <div class="dseg" style="flex:2;background:#e9d5ff;border-left:2px solid #c084fc;cursor:help"
+            data-tip="⬆ DISPO AMONT (−2 %)
+Attente cariste
+Défaut alignement
+Défaut chaîne d'entrée
+Défaut cellule / DP">
+            <div class="dinn" style="color:#4c1d95">
+              <span class="dinn-icon">⬆️</span>
+              Amont
+              <span class="dinn-pct">−2 %</span>
+            </div>
+          </div>
+          <div class="dseg" style="flex:1;background:#ddd6fe;border-left:2px solid #a78bfa;cursor:help"
+            data-tip="? DIVERS (−1 %)
+Causes non classifiables
+→ Documenter précisément
+à chaque occurrence">
+            <div class="dinn" style="color:#4c1d95;font-size:.7rem;font-weight:800">?<br><span class="dinn-pct">−1%</span></div>
+          </div>
+          <div class="dseg" style="flex:16;background:#d1fae5;border-left:2px dashed #6ee7b7">
+            <div class="dinn" style="color:#065f46;font-size:.6rem;opacity:.6;line-height:1.5">← Arrêts<br>Volontaires</div>
+          </div>
+        </div>
+
+        <!-- Barre 4 — Performance 48% + Vitesse + gris -->
+        <div class="dbar" style="box-shadow:0 2px 8px rgba(133,77,14,.12)">
+          <div class="dseg" style="flex:48;background:linear-gradient(135deg,#fde68a,#fef9c3)">
+            <div class="dlabel" style="color:#713f12">
+              <span>
+                <span class="dlabel-pct">48 %</span>
+                <span class="dlabel-name">Performance</span>
+              </span>
+            </div>
+          </div>
+          <div class="dseg" style="flex:7;background:#fed7aa;border-left:2px solid #fb923c;cursor:help"
+            data-tip="⚡ PERTES DE VITESSE (−7 %)
+Dépassement temps de cycle machine
+Nettoyage torche
+Changement buse
+Changement tube contact
+Changement meule
+Opérateur en formation
+Intervention externe
+Changement de fût
+Changement tresse
+Défaut brûleur">
+            <div class="dinn" style="color:#7c2d12">
+              <span class="dinn-icon">⚡</span>
+              Vitesse
+              <span class="dinn-pct">−7 %</span>
+            </div>
+          </div>
+          <div class="dseg" style="flex:45;background:#f1f5f9;border-left:1px solid #e2e8f0;border-radius:0 9px 9px 0">
+            <div class="dinn" style="color:#94a3b8;font-size:.65rem;text-align:center;padding:0 12px;line-height:1.6">← Pertes Disponibilité<br><span style="font-size:.6rem;opacity:.65">(non récupérables ici)</span></div>
+          </div>
+        </div>
+
+        <!-- Barre 5 — TRS 45% + NC + gris -->
+        <div class="dbar" style="border:2px solid #fcd34d;box-shadow:0 4px 16px rgba(217,119,6,.22)">
+          <div class="dseg" style="flex:45;background:linear-gradient(135deg,#fde68a,#fef3c7)">
+            <div class="dlabel" style="color:#78350f;font-weight:800">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#d97706" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <span>
+                <span class="dlabel-pct" style="color:#92400e">45 %</span>
+                <span class="dlabel-name" style="color:#a16207">TRS — Valeur ajoutée</span>
+              </span>
+            </div>
+          </div>
+          <div class="dseg" style="flex:3;background:#fef08a;border-left:2px solid #facc15;cursor:help"
+            data-tip="✦ PERTES QUALITÉ (−3 %)
+Arc instable
+Défaut soudage
+Reprise soudure / retouches
+Cordon non conforme">
+            <div class="dinn" style="color:#713f12">
+              <span class="dinn-icon">✦</span>
+              NC
+              <span class="dinn-pct">−3 %</span>
+            </div>
+          </div>
+          <div class="dseg" style="flex:52;background:#f8fafc;border-left:1px solid #e2e8f0;border-radius:0 9px 9px 0">
+            <div class="dinn" style="color:#94a3b8;font-size:.65rem;text-align:center;padding:0 12px;line-height:1.6">← Disponibilité + Performance perdues<br><span style="font-size:.6rem;opacity:.65">(potentiel d'amélioration)</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Légende -->
+    <div class="lgrid">
+      <div class="litem"><div class="ldot" style="background:var(--c1)"></div><strong style="color:var(--c1)">Pertes Vitesse</strong>&nbsp;<span style="color:var(--text3)">→ Perf ↓</span></div>
+      <div class="litem"><div class="ldot" style="background:var(--c2)"></div><strong style="color:var(--c2)">Dispo Amont</strong>&nbsp;<span style="color:var(--text3)">→ Dispo ↓</span></div>
+      <div class="litem"><div class="ldot" style="background:var(--c3)"></div><strong style="color:var(--c3)">Arrêts Fabrication</strong>&nbsp;<span style="color:var(--text3)">→ Dispo ↓</span></div>
+      <div class="litem"><div class="ldot" style="background:var(--c4)"></div><strong style="color:var(--c4)">Arrêts Process</strong>&nbsp;<span style="color:var(--text3)">→ Dispo ↓</span></div>
+      <div class="litem"><div class="ldot" style="background:var(--c5)"></div><strong style="color:var(--c5)">Arrêts Volontaires</strong>&nbsp;<span style="color:var(--text3)">→ Hors Requis</span></div>
+      <div class="litem"><div class="ldot" style="background:var(--c6)"></div><strong style="color:var(--c6)">Dispo Aval</strong>&nbsp;<span style="color:var(--text3)">→ Dispo ↓</span></div>
+      <div class="litem"><div class="ldot" style="background:var(--c7)"></div><strong style="color:var(--c7)">Changement de Série</strong>&nbsp;<span style="color:var(--text3)">→ Dispo ↓</span></div>
+      <div class="litem"><div class="ldot" style="background:var(--c8)"></div><strong style="color:var(--c8)">Divers</strong>&nbsp;<span style="color:var(--text3)">→ Dispo ↓</span></div>
+      <div class="litem"><div class="ldot" style="background:var(--c9)"></div><strong style="color:var(--c9)">Pannes</strong>&nbsp;<span style="color:var(--text3)">→ Dispo ↓↓</span></div>
+      <div class="litem"><div class="ldot" style="background:var(--c10)"></div><strong style="color:var(--c10)">Pertes Qualité</strong>&nbsp;<span style="color:var(--text3)">→ Qualité ↓</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Formule TRS</div>
+    <div class="formula">
+      <div class="fblock" style="background:#eff6ff;border:1px solid #bfdbfe">
+        <div class="flbl" style="color:var(--c7)">Dispo</div><div class="fval" style="color:var(--c7)">90 %</div>
+      </div>
+      <div class="fop">×</div>
+      <div class="fblock" style="background:#fff7ed;border:1px solid #fed7aa">
+        <div class="flbl" style="color:var(--c1)">Perf</div><div class="fval" style="color:var(--c1)">95 %</div>
+      </div>
+      <div class="fop">×</div>
+      <div class="fblock" style="background:#fffbeb;border:1px solid #fde68a">
+        <div class="flbl" style="color:var(--c10)">Qualité</div><div class="fval" style="color:var(--c10)">98 %</div>
+      </div>
+      <div class="fop">=</div>
+      <div class="fblock" style="background:#fef3c7;border:2px solid var(--gold)">
+        <div class="flbl" style="color:var(--gold)">TRS</div><div class="fval" style="color:var(--gold)">84 %</div>
+      </div>
+    </div>
+    <div class="fhint">💡 Chaque famille de pertes tire l'un de ces trois facteurs vers le bas.<br><strong>Identifier la bonne famille = trouver le bon levier d'amélioration.</strong></div>
+  </div>
+</div>
+
+<!-- ── TAB 2 FAMILLES ── -->
+<div id="tfamilles" class="tab">
+  <div class="section-header">
+    <div class="section-title">Les 10 Familles de Pertes</div>
+    <div class="section-sub">Chaque carte décrit la famille, ses signes visibles, les causes typiques et le réflexe opérateur.</div>
+  </div>
+  <div class="fgrid">
+
+    <div class="fc" style="border-top:3px solid var(--c1)">
+      <div class="fctop"><div class="fcnum">01</div><div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.98rem;color:var(--c1);margin-bottom:3px">Pertes de Vitesse</div><div style="font-size:.72rem;font-family:'DM Mono',monospace;color:var(--text3)">Performance TRS</div></div></div>
+      <div class="fcbody"><div class="fcdiv"></div>
+        <div class="fcdesc"><strong>C'est quoi ?</strong> La machine tourne mais en dessous de sa cadence nominale. Pas d'arrêt déclaré, mais moins de pièces que prévu.<br><br><strong>Signe visible :</strong> Compteur en retard sur le standard (ex : 22 pièces/h au lieu de 30).</div>
+        <div class="tw">
+          <span class="ft">Dépassement temps de cycle machine</span>
+          <span class="ft">Nettoyage torche</span>
+          <span class="ft">Changement buse</span>
+          <span class="ft">Changement tube contact</span>
+          <span class="ft">Changement meule</span>
+          <span class="ft">Opérateur en formation</span>
+          <span class="ft">Intervention externe</span>
+          <span class="ft">Changement de fût</span>
+          <span class="ft">Changement tresse</span>
+          <span class="ft">Défaut brûleur</span>
+        </div>
+        <div class="fref" style="background:#fff7ed;border-color:var(--c1)"><div class="rlbl" style="color:var(--c1)">💬 Réflexe</div>Dès que le compteur décroche du standard, déclarez-le. Ne laissez pas l'écart s'accumuler silencieusement.</div>
+      </div><div class="fbar" style="background:linear-gradient(90deg,var(--c1),#fef3c7)"></div>
+    </div>
+
+    <div class="fc" style="border-top:3px solid var(--c2)">
+      <div class="fctop"><div class="fcnum">02</div><div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.98rem;color:var(--c2);margin-bottom:3px">Dispo Amont</div><div style="font-size:.72rem;font-family:'DM Mono',monospace;color:var(--text3)">Disponibilité TRS</div></div></div>
+      <div class="fcbody"><div class="fcdiv"></div>
+        <div class="fcdesc"><strong>C'est quoi ?</strong> La machine est arrêtée à cause d'un problème en <em>amont</em> : alimentation, guidage ou détection en entrée de ligne.<br><br><strong>Signe visible :</strong> La machine attend mais aucune pièce n'entre. Alarme alimentation ou guidage.</div>
+        <div class="tw">
+          <span class="ft">Attente cariste</span>
+          <span class="ft">Défaut alignement</span>
+          <span class="ft">Défaut chaîne d'entrée</span>
+          <span class="ft">Défaut cellule / DP</span>
+        </div>
+        <div class="fref" style="background:#faf5ff;border-color:var(--c2)"><div class="rlbl" style="color:var(--c2)">💬 Réflexe</div>Alertez chef d'équipe et cariste immédiatement. Déclarez l'heure de début dès que la machine s'arrête.</div>
+      </div><div class="fbar" style="background:linear-gradient(90deg,var(--c2),#f3e8ff)"></div>
+    </div>
+
+    <div class="fc" style="border-top:3px solid var(--c3)">
+      <div class="fctop"><div class="fcnum">03</div><div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.98rem;color:var(--c3);margin-bottom:3px">Arrêts Fabrication</div><div style="font-size:.72rem;font-family:'DM Mono',monospace;color:var(--text3)">Disponibilité TRS</div></div></div>
+      <div class="fcbody"><div class="fcdiv"></div>
+        <div class="fcdesc"><strong>C'est quoi ?</strong> Arrêts liés à l'organisation humaine : manque de personnel, essais, formation sur poste. La machine est prête mais ne peut pas tourner.<br><br><strong>Signe visible :</strong> Poste vide ou occupé par une activité hors production standard.</div>
+        <div class="tw">
+          <span class="ft">Essais</span>
+          <span class="ft">Formations</span>
+          <span class="ft">Manque effectif</span>
+        </div>
+        <div class="fref" style="background:#fff1f2;border-color:var(--c3)"><div class="rlbl" style="color:var(--c3)">💬 Réflexe</div>Déclarez dès le début, même pour les essais. Cela aide à planifier les ressources et à réduire ces arrêts.</div>
+      </div><div class="fbar" style="background:linear-gradient(90deg,var(--c3),#fee2e2)"></div>
+    </div>
+
+    <div class="fc" style="border-top:3px solid var(--c4)">
+      <div class="fctop"><div class="fcnum">04</div><div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.98rem;color:var(--c4);margin-bottom:3px">Arrêts Process (Réglages)</div><div style="font-size:.72rem;font-family:'DM Mono',monospace;color:var(--text3)">Disponibilité TRS</div></div></div>
+      <div class="fcbody"><div class="fcdiv"></div>
+        <div class="fcdesc"><strong>C'est quoi ?</strong> Arrêts pour ajuster les paramètres machine : torche, générateur, capteurs. Nécessaires mais à standardiser et minimiser.<br><br><strong>Signe visible :</strong> L'opérateur intervient manuellement sur les réglages pendant que la machine est à l'arrêt.</div>
+        <div class="tw">
+          <span class="ft">Réglage torche</span>
+          <span class="ft">Réglage générateur</span>
+          <span class="ft">Réglage paramètres soudage</span>
+          <span class="ft">Réglage capteurs / cellules</span>
+        </div>
+        <div class="fref" style="background:#fefce8;border-color:var(--c4)"><div class="rlbl" style="color:var(--c4)">💬 Réflexe</div>Utilisez la fiche de réglage standardisée. Chronométrez. Si vous dépassez le temps standard, signalez-le.</div>
+      </div><div class="fbar" style="background:linear-gradient(90deg,var(--c4),#fef9c3)"></div>
+    </div>
+
+    <div class="fc" style="border-top:3px solid var(--c5)">
+      <div class="fctop"><div class="fcnum">05</div><div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.98rem;color:var(--c5);margin-bottom:3px">Arrêts Volontaires</div><div style="font-size:.72rem;font-family:'DM Mono',monospace;color:var(--text3)">Hors Temps Requis si déclarés à l'avance</div></div></div>
+      <div class="fcbody"><div class="fcdiv"></div>
+        <div class="fcdesc"><strong>C'est quoi ?</strong> Arrêts collectifs programmés : pauses, réunions, 5S, EHS. Font partie du fonctionnement normal.<br><br><strong>Point clé :</strong> Déclarés <em>avant</em> l'arrêt → sortent du Temps Requis. Non déclarés → apparaissent comme arrêts inexpliqués !</div>
+        <div class="tw">
+          <span class="ft">Casse-croûte</span>
+          <span class="ft">¼ Heure QEHS</span>
+          <span class="ft">Réunion</span>
+          <span class="ft">Semaine EHS</span>
+          <span class="ft">5S</span>
+        </div>
+        <div class="fref" style="background:#f0fdf4;border-color:var(--c5)"><div class="rlbl" style="color:var(--c5)">💬 Réflexe</div>Déclarez <strong>avant</strong> de partir. Une déclaration après coup fausse le TRS de l'équipe.</div>
+      </div><div class="fbar" style="background:linear-gradient(90deg,var(--c5),#dcfce7)"></div>
+    </div>
+
+    <div class="fc" style="border-top:3px solid var(--c6)">
+      <div class="fctop"><div class="fcnum">06</div><div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.98rem;color:var(--c6);margin-bottom:3px">Dispo Aval</div><div style="font-size:.72rem;font-family:'DM Mono',monospace;color:var(--text3)">Disponibilité TRS — cause externe</div></div></div>
+      <div class="fcbody"><div class="fcdiv"></div>
+        <div class="fcdesc"><strong>C'est quoi ?</strong> La machine est prête mais ne peut pas évacuer ses pièces : zone saturée, chariot absent, sortie bloquée. La cause est extérieure à la machine.<br><br><strong>Signe visible :</strong> Zone tampon pleine, cariste introuvable, pièces qui s'accumulent en sortie.</div>
+        <div class="tw">
+          <span class="ft">Attente cariste</span>
+          <span class="ft">Défaut alignement</span>
+          <span class="ft">Saturation encours / manque place</span>
+          <span class="ft">Défaut DP sortie</span>
+          <span class="ft">Sortie manuelle DN 1000</span>
+        </div>
+        <div class="fref" style="background:#f0fdfa;border-color:var(--c6)"><div class="rlbl" style="color:var(--c6)">💬 Réflexe</div>Ce n'est pas votre faute, mais alertez <strong>immédiatement</strong> le chef d'équipe. Plus tôt vous signalez, plus vite c'est résolu.</div>
+      </div><div class="fbar" style="background:linear-gradient(90deg,var(--c6),#ccfbf1)"></div>
+    </div>
+
+    <div class="fc" style="border-top:3px solid var(--c7)">
+      <div class="fctop"><div class="fcnum">07</div><div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.98rem;color:var(--c7);margin-bottom:3px">Changement de Série</div><div style="font-size:.72rem;font-family:'DM Mono',monospace;color:var(--text3)">Disponibilité TRS</div></div></div>
+      <div class="fcbody"><div class="fcdiv"></div>
+        <div class="fcdesc"><strong>C'est quoi ?</strong> Temps pour passer d'un diamètre (DN) à un autre. Machine arrêtée le temps de vider, régler et valider le redémarrage.<br><br><strong>Signe visible :</strong> Changement de référence DN en cours. Vidange, réglages, essais de démarrage.</div>
+        <div class="tw">
+          <span class="ft">Changement diamètre (DN)</span>
+          <span class="ft">Réglage machine après changement</span>
+          <span class="ft">Vidange machine</span>
+        </div>
+        <div class="fref" style="background:#eff6ff;border-color:var(--c7)"><div class="rlbl" style="color:var(--c7)">💬 Réflexe</div>Préparez outils et paramètres <strong>pendant que la machine tourne encore</strong> (démarche SMED). Tout ce qui peut se faire avant l'arrêt doit se faire avant.</div>
+      </div><div class="fbar" style="background:linear-gradient(90deg,var(--c7),#dbeafe)"></div>
+    </div>
+
+    <div class="fc" style="border-top:3px solid var(--c8)">
+      <div class="fctop"><div class="fcnum">08</div><div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.98rem;color:var(--c8);margin-bottom:3px">Dispo Divers</div><div style="font-size:.72rem;font-family:'DM Mono',monospace;color:var(--text3)">Disponibilité TRS</div></div></div>
+      <div class="fcbody"><div class="fcdiv"></div>
+        <div class="fcdesc"><strong>C'est quoi ?</strong> Arrêts ne rentrant dans aucune autre famille. Doivent être documentés précisément pour être reclassés ou créer une nouvelle famille si récurrents.<br><br><strong>Point clé :</strong> Une famille "Divers" qui grossit est un signal — il faut analyser et créer les bonnes sous-catégories.</div>
+        <div class="tw"><span class="ft" style="font-style:italic;color:var(--text3)">À renseigner précisément à chaque occurrence</span></div>
+        <div class="fref" style="background:#f5f3ff;border-color:var(--c8)"><div class="rlbl" style="color:var(--c8)">💬 Réflexe</div>Ne jamais laisser "Divers" sans description. Notez toujours la cause réelle dans le commentaire pour permettre l'analyse.</div>
+      </div><div class="fbar" style="background:linear-gradient(90deg,var(--c8),#ede9fe)"></div>
+    </div>
+
+    <div class="fc" style="border-top:3px solid var(--c9)">
+      <div class="fctop"><div class="fcnum">09</div><div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.98rem;color:var(--c9);margin-bottom:3px">Pannes</div><div style="font-size:.72rem;font-family:'DM Mono',monospace;color:var(--text3)">Disponibilité TRS — arrêt fortuit</div></div></div>
+      <div class="fcbody"><div class="fcdiv"></div>
+        <div class="fcdesc"><strong>C'est quoi ?</strong> Arrêt soudain, non prévu, dû à une défaillance matérielle ou électrique. La famille la plus coûteuse — aucune préparation possible.<br><br><strong>Signe visible :</strong> La machine s'arrête sans décision. Alarme, message d'erreur, composant endommagé ou bruyant.</div>
+        <div class="tw">
+          <span class="ft">Panne torche</span>
+          <span class="ft">Panne générateur</span>
+          <span class="ft">Défaut variateur</span>
+          <span class="ft">Problème alimentation fil (bourrage, blocage)</span>
+          <span class="ft">Panne meule préparation surface</span>
+          <span class="ft">Défaut capteur / codeur</span>
+          <span class="ft">Problème gaz (vide / fuite)</span>
+          <span class="ft">Défaut communication machine</span>
+          <span class="ft">Panne chaîne (entrée/sortie)</span>
+          <span class="ft">Panne manutention</span>
+          <span class="ft">Panne chariot évacuation</span>
+          <span class="ft">Défaut chaîne d'entrée</span>
+          <span class="ft">Défaut cellule / DP</span>
+        </div>
+        <div class="fref" style="background:#fff1f2;border-color:var(--c9)"><div class="rlbl" style="color:var(--c9)">💬 Réflexe</div><strong>1)</strong> Notez l'heure exacte. <strong>2)</strong> Décrivez ce que vous avez vu (bruit, alarme, odeur). <strong>3)</strong> Appelez la maintenance. <strong>4)</strong> N'intervenez pas sur les parties électriques.</div>
+      </div><div class="fbar" style="background:linear-gradient(90deg,var(--c9),#ffe4e6)"></div>
+    </div>
+
+    <div class="fc" style="border-top:3px solid var(--c10)">
+      <div class="fctop"><div class="fcnum">10</div><div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.98rem;color:var(--c10);margin-bottom:3px">Pertes Qualité</div><div style="font-size:.72rem;font-family:'DM Mono',monospace;color:var(--text3)">Taux Qualité TRS</div></div></div>
+      <div class="fcbody"><div class="fcdiv"></div>
+        <div class="fcdesc"><strong>C'est quoi ?</strong> La machine tourne à vitesse normale mais les pièces produites ne sont pas conformes. Temps et énergie consommés sans valeur ajoutée.<br><br><strong>Signe visible :</strong> Cordon irrégulier, arc qui claque, pièce refusée au contrôle visuel ou dimensionnel.</div>
+        <div class="tw">
+          <span class="ft">Arc instable</span>
+          <span class="ft">Défaut soudage</span>
+          <span class="ft">Reprise soudure / retouches</span>
+          <span class="ft">Cordon non conforme</span>
+        </div>
+        <div class="fref" style="background:#fffbeb;border-color:var(--c10)"><div class="rlbl" style="color:var(--c10)">💬 Réflexe</div><strong>1)</strong> Arrêtez si dérive constatée. <strong>2)</strong> Isolez les NC dans le bac rouge. <strong>3)</strong> Ne mélangez jamais les bonnes et mauvaises pièces. <strong>4)</strong> Alertez le responsable qualité.</div>
+      </div><div class="fbar" style="background:linear-gradient(90deg,var(--c10),#fef3c7)"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── TAB 3 RÉCAP ── -->
+<div id="trecap" class="tab">
+  <div class="section-header">
+    <div class="section-title">Tableau Récapitulatif</div>
+    <div class="section-sub">Vue synthétique des 10 familles avec indicateur TRS impacté, exemples de causes, pilote et action opérateur.</div>
+  </div>
+  <div class="twrap">
+    <table>
+      <thead><tr><th>#</th><th>Famille</th><th>Indicateur TRS</th><th>Exemples de causes</th><th>Pilote</th><th>Action opérateur</th></tr></thead>
+      <tbody>
+        <tr><td class="tnum">01</td><td><div class="tname"><div class="tdot" style="background:var(--c1)"></div>Pertes Vitesse</div></td><td><div class="tkpi" style="color:var(--c1)">Performance ↓</div></td><td>Dépassement tps cycle machine, nettoyage torche, changement buse / tube contact / meule, opérateur en formation, changement fût / tresse, défaut brûleur, intervention externe</td><td>Opérateur + Méthodes</td><td>Respecter les standards de temps — alerter si dérive</td></tr>
+        <tr><td class="tnum">02</td><td><div class="tname"><div class="tdot" style="background:var(--c2)"></div>Dispo Amont</div></td><td><div class="tkpi" style="color:var(--c2)">Disponibilité ↓</div></td><td>Attente cariste, défaut alignement, défaut chaîne d'entrée, défaut cellule / DP</td><td>Logistique + Maintenance</td><td>Alerter immédiatement — déclarer heure de début</td></tr>
+        <tr><td class="tnum">03</td><td><div class="tname"><div class="tdot" style="background:var(--c3)"></div>Arrêts Fabrication</div></td><td><div class="tkpi" style="color:var(--c3)">Disponibilité ↓</div></td><td>Essais, formations, manque effectif</td><td>Chef d'équipe</td><td>Déclarer dès le début — alerter CE pour planification</td></tr>
+        <tr><td class="tnum">04</td><td><div class="tname"><div class="tdot" style="background:var(--c4)"></div>Arrêts Process</div></td><td><div class="tkpi" style="color:var(--c4)">Disponibilité ↓</div></td><td>Réglage torche, réglage générateur, réglage paramètres soudage, réglage capteurs / cellules</td><td>Opérateur qualifié</td><td>Utiliser fiche de réglage — chrono systématique</td></tr>
+        <tr><td class="tnum">05</td><td><div class="tname"><div class="tdot" style="background:var(--c5)"></div>Arrêts Volontaires</div></td><td><div class="tkpi" style="color:var(--c5)">Hors Tps Requis</div></td><td>Casse-croûte, ¼h QEHS, réunion, semaine EHS, 5S</td><td>Planning</td><td>Déclarer <strong>avant</strong> l'arrêt pour exclure du temps requis</td></tr>
+        <tr><td class="tnum">06</td><td><div class="tname"><div class="tdot" style="background:var(--c6)"></div>Dispo Aval</div></td><td><div class="tkpi" style="color:var(--c6)">Disponibilité ↓</div></td><td>Attente cariste, défaut alignement, saturation encours / manque place, défaut DP sortie, sortie manuelle DN 1000</td><td>Logistique / Cariste</td><td>Alerter immédiatement le chef d'équipe — ne pas attendre</td></tr>
+        <tr><td class="tnum">07</td><td><div class="tname"><div class="tdot" style="background:var(--c7)"></div>Changement de Série</div></td><td><div class="tkpi" style="color:var(--c7)">Disponibilité ↓</div></td><td>Changement diamètre (DN), réglage machine après changement, vidange machine</td><td>Opérateur + SMED</td><td>Préparer le changement avant arrêt (opérations externes)</td></tr>
+        <tr><td class="tnum">08</td><td><div class="tname"><div class="tdot" style="background:var(--c8)"></div>Dispo Divers</div></td><td><div class="tkpi" style="color:var(--c8)">Disponibilité ↓</div></td><td>Causes non classifiables — à documenter précisément à chaque occurrence</td><td>À définir selon cause</td><td>Ne jamais laisser sans commentaire — décrire la cause réelle</td></tr>
+        <tr><td class="tnum">09</td><td><div class="tname"><div class="tdot" style="background:var(--c9)"></div>Pannes</div></td><td><div class="tkpi" style="color:var(--c9)">Disponibilité ↓↓</div></td><td>Panne torche / générateur / variateur, problème alimentation fil (bourrage/blocage), panne meule, défaut capteur/codeur, problème gaz, défaut communication, panne chaîne, panne manutention, panne chariot évacuation, défaut cellule/DP</td><td>Maintenance</td><td>Heure + symptôme → appeler maintenance → ne pas toucher électrique</td></tr>
+        <tr><td class="tnum">10</td><td><div class="tname"><div class="tdot" style="background:var(--c10)"></div>Pertes Qualité</div></td><td><div class="tkpi" style="color:var(--c10)">Qualité ↓</div></td><td>Arc instable, défaut soudage, reprise soudure / retouches, cordon non conforme</td><td>Opérateur + Qualité</td><td>recenser les NC — ne pas mélanger — alerter qualité</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="panel" style="border-color:#fde68a;background:#fffbeb">
+    <div class="panel-title" style="color:var(--gold)">Règle d'or de l'opérateur</div>
+    <div class="rgrid">
+      <div class="rc"><div class="rnum">01 —</div><div class="rtitle" style="color:var(--c9)">Je déclare</div><div class="rdesc">Tout arrêt dès qu'il commence, dans la bonne famille.</div></div>
+      <div class="rc"><div class="rnum">02 —</div><div class="rtitle" style="color:var(--c9)">J'alerte</div><div class="rdesc">Maintenance si panne — CE si aval, effectif ou divers.</div></div>
+      <div class="rc"><div class="rnum">03 —</div><div class="rtitle" style="color:var(--c1)">Je respecte</div><div class="rdesc">Les standards de temps et de réglage définis.</div></div>
+      <div class="rc"><div class="rnum">04 —</div><div class="rtitle" style="color:var(--gold)">Je trace</div><div class="rdesc">Chaque événement pour améliorer demain.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAB 4 QUIZ ── -->
+<div id="tquiz" class="tab">
+  <div class="section-header">
+    <div class="section-title">Quiz de Validation</div>
+    <div class="section-sub">8 questions tirées aléatoirement parmi 32 situations réelles. Identifiez la bonne famille de pertes TRS.</div>
+  </div>
+  <div class="qwrap">
+    <div class="qpbar"><div class="qpfill" id="qprogfill" style="width:0%"></div></div>
+    <div class="qcard">
+      <div class="qmeta">
+        <div class="qctr" id="qprog">Question 1 / 8</div>
+        <div class="qslive" id="qscorelive">0 pt</div>
+      </div>
+      <div class="qq" id="qq"></div>
+      <div class="qsc" id="qsc"></div>
+      <div class="qopts" id="qopts"></div>
+      <div class="qfb" id="qfb"></div>
+      <button class="btnp" id="qnext" onclick="nextQ()" style="display:none">
+        Suivant <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div id="qres" style="display:none">
+        <div class="qres">
+          <div class="rlbl">Score final</div>
+          <div class="rscore" id="qscore"></div>
+          <div class="rmsg" id="qmsg"></div>
+          <button class="btnp" onclick="restartQ()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+            Nouveau tirage
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+function showTab(id,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('t'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ── BANQUE DE 32 QUESTIONS ── */
+const allQs=[
+  /* PERTE DE VITESSE */
+  {q:"La machine tourne mais le compteur est en retard sur le standard",sc:"Vous produisez 22 pièces/h au lieu de 30. Aucun arrêt déclaré. La machine tourne normalement.",opts:["Panne","Perte de Vitesse","Dispo Aval","Perte Qualité"],ans:1,fb:"✓ Perte de Vitesse — la machine tourne mais sous la cadence nominale → impacte la Performance TRS."},
+  {q:"Le nettoyage de la torche prend 8 min au lieu des 4 min standard",sc:"L'opérateur nettoie la torche en cours de production mais dépasse systématiquement le temps prévu.",opts:["Arrêt Process","Perte de Vitesse","Arrêt Volontaire","Panne"],ans:1,fb:"✓ Perte de Vitesse — le dépassement du temps standard de nettoyage ralentit la cadence → Performance TRS."},
+  {q:"L'opérateur est en période de formation et tourne à 70% de la cadence",sc:"Nouvel opérateur qualifié depuis 2 semaines. Il tourne mais plus lentement que le standard défini.",opts:["Arrêts Fabrication","Panne","Perte de Vitesse","Arrêt Process"],ans:2,fb:"✓ Perte de Vitesse — même en formation, si la machine tourne mais sous cadence, c'est une perte de Performance TRS."},
+  {q:"Le changement de fût de fil prend 12 min au lieu de 5 min prévus",sc:"L'opérateur a du mal à charger le nouveau fût. La machine est à l'arrêt pendant ce temps.",opts:["Perte de Vitesse","Changement de Série","Arrêt Process","Panne"],ans:0,fb:"✓ Perte de Vitesse — le changement de consommables (fût, tresse) fait partie des petits arrêts / micro-arrêts intégrés au cycle. Si dépassé, c'est de la perte vitesse."},
+
+  /* DISPO AMONT */
+  {q:"Pas de cariste disponible, vous ne pouvez pas rentrer de nouvelles pièces",sc:"La zone amont est vide. La machine est à l'arrêt depuis 20 min en attente d'approvisionnement.",opts:["Panne machine","Dispo Amont","Arrêts Fabrication","Arrêts Volontaires"],ans:1,fb:"✓ Dispo Amont — la cause est en amont de la machine : logistique d'entrée. Alertez immédiatement le chef d'équipe."},
+  {q:"La chaîne d'entrée est désalignée, les pièces ne rentrent plus",sc:"Un défaut d'alignement bloque l'entrée des tubes. La machine ne peut pas démarrer.",opts:["Panne","Dispo Amont","Arrêt Process","Changement de Série"],ans:1,fb:"✓ Dispo Amont — le défaut d'alignement de la chaîne d'entrée est une cause amont qui empêche l'alimentation de la machine."},
+  {q:"La cellule photoélectrique d'entrée détecte mal les pièces",sc:"La cellule est mal réglée : la machine ne détecte pas l'arrivée des tubes et ne démarre pas le cycle.",opts:["Panne","Dispo Amont","Arrêt Process","Perte de Vitesse"],ans:1,fb:"✓ Dispo Amont — défaut cellule / détecteur de présence en entrée : cause amont qui bloque l'alimentation."},
+
+  /* ARRÊTS FABRICATION */
+  {q:"L'équipe fait un essai de réglage sur 10 pièces test pour un nouveau procédé",sc:"Production arrêtée sur décision du chef d'équipe pour valider un nouveau paramétrage avant lancement série.",opts:["Arrêts Fabrication","Changement de Série","Arrêt Process","Perte Qualité"],ans:0,fb:"✓ Arrêts Fabrication — les essais sont planifiés par le chef d'équipe et constituent un arrêt de fabrication voulu."},
+  {q:"Il manque un opérateur ce matin, la machine reste à l'arrêt",sc:"Absence non prévue. Le chef d'équipe ne peut pas remplacer l'opérateur manquant immédiatement.",opts:["Dispo Amont","Arrêts Fabrication","Panne","Arrêts Volontaires"],ans:1,fb:"✓ Arrêts Fabrication — le manque d'effectif est un arrêt de fabrication. À déclarer immédiatement au chef d'équipe pour planification."},
+  {q:"Un technicien méthodes vient observer la machine pour une étude de temps",sc:"La production est suspendue 30 min pour permettre l'analyse des temps de cycle par les méthodes.",opts:["Panne","Arrêts Volontaires","Arrêts Fabrication","Dispo Divers"],ans:2,fb:"✓ Arrêts Fabrication — une étude de temps nécessite l'arrêt de la machine et relève des arrêts fabrication, planifiés par l'encadrement."},
+
+  /* ARRÊTS PROCESS */
+  {q:"Vous devez régler la torche de soudage, la machine est à l'arrêt",sc:"Après plusieurs pièces avec un arc instable, vous intervenez sur le positionnement de la torche.",opts:["Panne","Changement de Série","Perte Qualité","Arrêt Process"],ans:3,fb:"✓ Arrêt Process — réglage nécessaire mais planifiable. Utilisez la fiche de réglage et chronométrez l'intervention."},
+  {q:"Les paramètres soudage doivent être ajustés : tension et vitesse fil",sc:"Les cordons sont trop larges. Vous arrêtez la machine pour modifier la tension et la vitesse du fil.",opts:["Perte Qualité","Arrêt Process","Panne","Changement de Série"],ans:1,fb:"✓ Arrêt Process — l'ajustement des paramètres de soudage (tension, vitesse fil) est un réglage planifiable relevant de l'Arrêt Process."},
+  {q:"Vous réglez la cellule de détection en sortie qui est mal positionnée",sc:"La cellule déclenche à tort et arrête le cycle. Vous devez l'ajuster manuellement.",opts:["Dispo Aval","Panne","Arrêt Process","Dispo Divers"],ans:2,fb:"✓ Arrêt Process — le réglage des capteurs et cellules est un arrêt process planifiable. Chronométrez et utilisez la fiche réglage."},
+  {q:"Le générateur nécessite un réglage de l'intensité avant de relancer",sc:"Les dernières pièces montraient des projections. Vous ajustez l'intensité sur le générateur avant de repartir.",opts:["Arrêt Process","Panne","Perte Qualité","Dispo Divers"],ans:0,fb:"✓ Arrêt Process — le réglage du générateur est un arrêt process. Utilisez la fiche de réglage et mesurez le temps d'intervention."},
+
+  /* ARRÊTS VOLONTAIRES */
+  {q:"La réunion QEHS de 15 min n'a pas été déclarée avant de partir",sc:"La réunion a eu lieu mais personne n'a saisi l'arrêt dans le système avant de partir.",opts:["Arrêt Volontaire bien géré","Arrêt Volontaire mal géré","Panne","Divers"],ans:1,fb:"✓ Arrêt Volontaire mal géré — non déclaré avant, il apparaît comme un arrêt inexpliqué dans le TRS. Toujours déclarer AVANT l'arrêt."},
+  {q:"Le casse-croûte de 20 min est déclaré dans le système avant l'arrêt",sc:"L'opérateur saisit la pause dans l'interface de saisie avant de quitter son poste.",opts:["Arrêt Volontaire bien géré","Perte de Vitesse","Arrêts Fabrication","Panne"],ans:0,fb:"✓ Arrêt Volontaire bien géré — déclaré avant l'arrêt, il est exclu du temps requis et n'impacte pas le TRS. C'est la bonne pratique."},
+  {q:"La semaine EHS mobilise l'équipe pour 1h de sensibilisation sécurité",sc:"L'arrêt est planifié à l'avance et saisi dans le planning avant le début du quart.",opts:["Arrêts Fabrication","Arrêt Volontaire","Panne","Dispo Divers"],ans:1,fb:"✓ Arrêt Volontaire — la semaine EHS, les 5S et les réunions planifiées sont des arrêts volontaires. Bien géré s'ils sont déclarés avant."},
+  {q:"Un 5S de 30 min est organisé en fin de poste mais non déclaré au préalable",sc:"Le chef d'équipe organise un rangement collectif. L'arrêt n'est pas saisi dans l'outil avant.",opts:["Arrêt Volontaire bien géré","Arrêt Volontaire mal géré","Arrêts Fabrication","Dispo Divers"],ans:1,fb:"✓ Arrêt Volontaire mal géré — le 5S est légitime, mais sans déclaration préalable il apparaît comme arrêt inexpliqué. À toujours saisir avant."},
+
+  /* DISPO AVAL */
+  {q:"La zone tampon est saturée, impossible d'évacuer vos pièces",sc:"La machine est prête et tourne bien, mais vous ne pouvez plus sortir les pièces finies.",opts:["Panne machine","Changement de Série","Dispo Aval","Arrêts Fabrication"],ans:2,fb:"✓ Dispo Aval — la cause est externe à votre machine (logistique aval). Alertez immédiatement le chef d'équipe."},
+  {q:"Le cariste aval ne passe pas, les pièces finies s'accumulent",sc:"L'encours est plein. Vous ne pouvez plus poser les pièces et devez arrêter la machine.",opts:["Dispo Aval","Panne","Arrêts Fabrication","Dispo Divers"],ans:0,fb:"✓ Dispo Aval — attente cariste en sortie = cause aval. Alerter immédiatement le chef d'équipe, ne pas attendre."},
+  {q:"La chaîne de sortie est désalignée et bloque l'évacuation des tubes finis",sc:"Les tubes en sortie se coincent à cause d'un défaut d'alignement de la chaîne de sortie.",opts:["Panne","Changement de Série","Dispo Aval","Arrêt Process"],ans:2,fb:"✓ Dispo Aval — le défaut de la chaîne ou du convoyeur de sortie est une cause aval qui bloque l'évacuation des pièces finies."},
+  {q:"Les DN 1000 doivent être évacués manuellement, aucune place disponible",sc:"Les grandes pièces ne peuvent pas être prises en charge automatiquement. Le stock tampon est plein.",opts:["Perte de Vitesse","Dispo Aval","Changement de Série","Dispo Divers"],ans:1,fb:"✓ Dispo Aval — la sortie manuelle DN 1000 par manque de place est une contrainte aval. À signaler au chef d'équipe."},
+
+  /* CHANGEMENT DE SÉRIE */
+  {q:"Vous passez du DN 400 au DN 600",sc:"Vous devez vider la machine, ajuster les paramètres et refaire les réglages avant de relancer.",opts:["Panne","Changement de Série","Arrêts Fabrication","Arrêt Process"],ans:1,fb:"✓ Changement de Série — préparez les opérations externes pendant que la machine tourne encore (SMED)."},
+  {q:"Vous devez vider la machine complètement avant de changer de diamètre",sc:"La vidange est la première étape obligatoire avant tout changement de série. La machine est à l'arrêt.",opts:["Arrêt Process","Changement de Série","Panne","Arrêts Fabrication"],ans:1,fb:"✓ Changement de Série — la vidange machine fait partie intégrante du changement de série. Préparez le maximum d'opérations avant l'arrêt."},
+  {q:"Les réglages machine post-changement de diamètre prennent 45 min",sc:"Après le changement DN, vous devez reconfigurer tous les paramètres avant la première pièce bonne.",opts:["Arrêt Process","Changement de Série","Arrêts Fabrication","Panne"],ans:1,fb:"✓ Changement de Série — les réglages post-changement font partie du temps de changement de série. Objectif SMED : réduire ce temps."},
+
+  /* DISPO DIVERS */
+  {q:"Un événement externe imprévu arrête la machine sans cause identifiable immédiatement",sc:"La machine s'arrête. Après vérification, aucune famille standard ne correspond clairement à la situation.",opts:["Panne","Arrêts Fabrication","Dispo Divers","Arrêt Process"],ans:2,fb:"✓ Dispo Divers — quand aucune famille ne correspond, utilisez Divers mais TOUJOURS avec un commentaire précis pour permettre l'analyse."},
+  {q:"Une intervention externe (visiteur, audit) stoppe la production 25 min",sc:"Un auditeur externe impose un arrêt pour inspection. Ce type d'arrêt n'est prévu dans aucune famille standard.",opts:["Arrêts Volontaires","Arrêts Fabrication","Dispo Divers","Panne"],ans:2,fb:"✓ Dispo Divers — arrêt non classifiable. Documentez précisément : si récurrent, créez une sous-catégorie dédiée."},
+
+  /* PANNES */
+  {q:"Le générateur de soudage s'arrête brutalement sans raison",sc:"Arrêt en cours de production. Aucune alerte préalable. Le redémarrage ne fonctionne pas.",opts:["Arrêt Process","Perte Vitesse","Panne","Dispo Aval"],ans:2,fb:"✓ Panne — arrêt fortuit non planifié. Notez l'heure exacte, décrivez le symptôme, appelez la maintenance."},
+  {q:"La torche émet un bruit anormal et la machine s'arrête seule",sc:"En plein cycle, la torche fait un bruit de claquement répété puis la machine passe en défaut.",opts:["Perte de Vitesse","Arrêt Process","Panne","Perte Qualité"],ans:2,fb:"✓ Panne — arrêt fortuit avec symptôme physique (bruit). Notez l'heure et le symptôme exact, appelez la maintenance. Ne touchez pas l'électrique."},
+  {q:"Le variateur de vitesse de la chaîne d'entrée tombe en défaut",sc:"Alarme sur l'interface machine. La chaîne d'entrée ne tourne plus. Redémarrage impossible.",opts:["Dispo Amont","Panne","Arrêt Process","Dispo Divers"],ans:1,fb:"✓ Panne — défaut variateur = défaillance matérielle fortuite. Intervention maintenance requise. Notez l'alarme affichée."},
+  {q:"Un bourrage de fil bloque l'alimentation et arrête la machine en défaut",sc:"Le fil s'est enroulé dans le dévidoir. Alarme déclenchée. La production est à l'arrêt.",opts:["Perte de Vitesse","Arrêt Process","Panne","Dispo Amont"],ans:2,fb:"✓ Panne — problème d'alimentation fil (bourrage / blocage) = arrêt fortuit. Appelez la maintenance, ne démontez pas seul."},
+  {q:"Une fuite de gaz déclenche l'arrêt automatique de sécurité",sc:"Le capteur de gaz détecte une anomalie. L'arrêt d'urgence se déclenche automatiquement.",opts:["Arrêts Volontaires","Panne","Arrêt Process","Dispo Divers"],ans:1,fb:"✓ Panne — problème gaz (fuite / vide) = arrêt fortuit de sécurité. N'intervenez pas. Appelez immédiatement la maintenance et informez la sécurité."},
+
+  /* PERTES QUALITÉ */
+  {q:"Un cordon de soudure est jugé non conforme au contrôle",sc:"La machine tournait normalement. 6 pièces sur 20 sont refusées au contrôle visuel.",opts:["Perte Vitesse","Panne","Arrêt Process","Perte Qualité"],ans:3,fb:"✓ Perte Qualité — la machine tournait mais les pièces ne sont pas conformes. Isolez les NC dans le bac rouge, alertez le responsable qualité."},
+  {q:"L'arc est instable et crée des projections sur les dernières pièces",sc:"La machine tourne à cadence normale mais les cordons présentent des projections importantes.",opts:["Perte de Vitesse","Panne","Perte Qualité","Arrêt Process"],ans:2,fb:"✓ Perte Qualité — arc instable = défaut de soudage. La machine tourne mais produit des non-conformes → Qualité TRS impactée."},
+  {q:"Des reprises de soudure sont nécessaires sur 30% de la production",sc:"Les cordons ont des discontinuités. L'opérateur doit retoucher manuellement 1 pièce sur 3.",opts:["Perte de Vitesse","Perte Qualité","Arrêt Process","Changement de Série"],ans:1,fb:"✓ Perte Qualité — les retouches et reprises de soudure sont une perte Qualité. Isolez les pièces, alertez le responsable qualité, n'attendez pas."},
+];
+
+const NB_QUESTIONS = 8;
+let qs=[],cur=0,score=0,answered=false;
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+function pickQuestions(){
+  return shuffle(allQs).slice(0,NB_QUESTIONS);
+}
+
+function loadQ(){
+  const q=qs[cur];answered=false;
+  document.getElementById('qprog').textContent=`Question ${cur+1} / ${NB_QUESTIONS}`;
+  document.getElementById('qprogfill').style.width=`${(cur/NB_QUESTIONS)*100}%`;
+  document.getElementById('qq').textContent=q.q;
+  document.getElementById('qsc').textContent=q.sc;
+  const fb=document.getElementById('qfb');fb.className='qfb';fb.textContent='';
+  document.getElementById('qnext').style.display='none';
+  document.getElementById('qres').style.display='none';
+  const opts=document.getElementById('qopts');opts.innerHTML='';
+  q.opts.forEach((o,i)=>{const b=document.createElement('button');b.className='qopt';b.textContent=o;b.onclick=()=>ansQ(i,b);opts.appendChild(b);});
+}
+
+function ansQ(i,btn){
+  if(answered)return;answered=true;
+  const q=qs[cur],fb=document.getElementById('qfb');
+  document.querySelectorAll('.qopt').forEach(b=>b.disabled=true);
+  if(i===q.ans){btn.classList.add('ok');fb.textContent=q.fb;fb.className='qfb show fok';score++;}
+  else{btn.classList.add('ko');document.querySelectorAll('.qopt')[q.ans].classList.add('ok');fb.textContent='✗ Pas tout à fait. '+q.fb;fb.className='qfb show fko';}
+  document.getElementById('qscorelive').textContent=`${score} pt${score>1?'s':''}`;
+  document.getElementById('qnext').style.display='inline-flex';
+}
+
+function nextQ(){
+  cur++;
+  if(cur>=NB_QUESTIONS){
+    document.getElementById('qopts').innerHTML='';
+    document.getElementById('qq').textContent='';
+    document.getElementById('qsc').textContent='';
+    document.getElementById('qfb').className='qfb';
+    document.getElementById('qnext').style.display='none';
+    document.getElementById('qprogfill').style.width='100%';
+    const p=Math.round(score/NB_QUESTIONS*100);
+    const sc=document.getElementById('qscore');
+    sc.textContent=`${score} / ${NB_QUESTIONS}`;
+    sc.style.color=p>=75?'#16a34a':'#dc2626';
+    document.getElementById('qmsg').textContent=p===100?'🏆 Parfait ! Maîtrise complète des 10 familles.':p>=75?'✅ Bonne maîtrise. Relancez pour tester d\'autres situations.':'⚠️ Formation à compléter. Revoir les fiches avant validation.';
+    document.getElementById('qres').style.display='block';
+    document.getElementById('qprog').textContent='Résultat final';
+    document.getElementById('qscorelive').textContent='';
+  }else loadQ();
+}
+
+function restartQ(){
+  cur=0;score=0;
+  qs=pickQuestions();
+  document.getElementById('qres').style.display='none';
+  document.getElementById('qscorelive').textContent='0 pt';
+  loadQ();
+}
+
+qs=pickQuestions();
+loadQ();
+</script>
+</body>
+</html>
